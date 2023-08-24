@@ -17,3 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+Route::get('guardian', 'App\Http\Controllers\Controller@guardian');
+Route::get('nyt', 'App\Http\Controllers\Controller@nyt');
+Route::get('newsapi', 'App\Http\Controllers\Controller@newsapi');
