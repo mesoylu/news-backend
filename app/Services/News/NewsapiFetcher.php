@@ -12,11 +12,6 @@ class NewsapiFetcher extends AbstractFetcher
     const PAGE_SIZE = 100;
     protected array $sources = array();
 
-    public function execute(int $startTimestamp, int $endTimestamp): void
-    {
-        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
-    }
-
     /**
      * Fetches the news from NewsAPI from the selected sources
      * In order to simplify the service, language is limited to English

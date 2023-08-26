@@ -9,11 +9,6 @@ class NYTFetcher extends AbstractFetcher
 {
     const PAGE_SIZE = 10;
 
-    public function execute(int $startTimestamp, int $endTimestamp): void
-    {
-        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
-    }
-
     protected function fetchArticlesByDate(int $startTimestamp, int $endTimestamp): void
     {
         try {

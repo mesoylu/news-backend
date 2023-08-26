@@ -17,6 +17,11 @@ abstract class AbstractFetcher implements FetcherInterface
         $this->serviceUrl = $serviceUrl;
     }
 
+    public function execute(int $startTimestamp, int $endTimestamp ): void
+    {
+        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
+    }
+
     abstract protected function fetchArticlesByDate(int $startTimestamp, int $endTimestamp): void;
 
     protected function makeRequest(string $endpoint, array $queryParameters, array $headers = [])

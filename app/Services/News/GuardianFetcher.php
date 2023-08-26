@@ -7,13 +7,7 @@ use Throwable;
 
 class GuardianFetcher extends AbstractFetcher
 {
-
     const PAGE_SIZE = 200;
-
-    public function execute(int $startTimestamp, int $endTimestamp ): void
-    {
-        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
-    }
 
     protected function fetchArticlesByDate(int $startTimestamp, int $endTimestamp): void
     {
