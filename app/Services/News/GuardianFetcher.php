@@ -2,28 +2,20 @@
 
 namespace App\Services\News;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use App\Exceptions\NewsFetchException;
+use Throwable;
 
-class GuardianFetcher
+class GuardianFetcher extends AbstractFetcher
 {
 
     const PAGE_SIZE = 200;
-    protected string $apikey;
-    protected string $serviceUrl;
 
-    public function __construct()
+    public function execute(int $startTimestamp, int $endTimestamp ): void
     {
-        $this->apikey = config('services.guardian.apikey');
-        $this->serviceUrl = config('services.guardian.serviceUrl');
+        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
     }
 
-    public function execute()
-    {
-        $this->fetchEverythingByDate(1692717292, 1692803692);
-    }
-
-    private function fetchEverythingByDate(int $startTimestamp, int $endTimestamp)
+    protected function fetchArticlesByDate(int $startTimestamp, int $endTimestamp): void
     {
         try {
             // limiting the request count in order to preserve free usage limit
@@ -39,35 +31,27 @@ class GuardianFetcher
                 'show-tags' => 'keyword,contributor',
             );
 
-
             do {
-                $response = Http::withQueryParameters($queryParameters)
-                    ->get($endpoint);
-                if (!$response->ok()) {
-                    throw new \Exception('Response for fetching news is not ok: ' . $response->body());
-                }
-                $result = $response->json();
+                $result = $this->makeRequest($endpoint, $queryParameters);
                 if (!array_key_exists('response', $result)) {
-                    throw new \Exception('Result for fetching news does not have the key "response": ' . $response->body());
+                    throw new NewsFetchException('Result for fetching news does not have the key "response": ' . $result);
                 }
                 $result = $result['response'];
                 if (!array_key_exists('status', $result) || $result['status'] !== 'ok') {
-                    throw new \Exception('Result for fetching news does not have ok status: ' . $response->body());
+                    throw new NewsFetchException('Result for fetching news does not have ok status: ' . $result);
                 }
                 $totalPage = $result['pages'] ?? 1;
                 $articles = $result['results'] ?? array();
                 $this->saveToDB($articles);
                 $queryParameters['page']++;
-                die;
             } while ($queryParameters['page'] <= $totalPage);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             report($e);
         }
     }
 
     private function saveToDB(array $articles)
     {
-        Log::info($articles);
         // do something
     }
 }
