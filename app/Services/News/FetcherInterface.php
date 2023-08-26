@@ -4,5 +4,5 @@ namespace App\Services\News;
 
 interface FetcherInterface
 {
-    public function execute(): void;
+    public function execute(int $startTimestamp, int $endTimestamp): void;
 }
