@@ -109,7 +109,7 @@ class NYTFetcher extends AbstractFetcher
             if (str_contains($authors, ' and ') || str_contains($authors, ', ')) {
                 $authors = str_replace([' and ', ', '], '|', $authors);
             }
-            return explode('|', $authors);
+            return array_filter(explode('|', $authors));
         } catch (Throwable) {
             return array();
         }
