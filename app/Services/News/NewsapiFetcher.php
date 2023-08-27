@@ -3,6 +3,11 @@
 namespace App\Services\News;
 
 use App\Exceptions\NewsFetchException;
+use App\Models\Article;
+use App\Models\Author;
+use App\Models\Category;
+use App\Models\Source;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -104,6 +109,79 @@ class NewsapiFetcher extends AbstractFetcher
 
     private function saveToDB(array $articles)
     {
-        // do something
+        try {
+            foreach ($articles as $article) {
+                try {
+                    $sourceId = $article['source']['id'];
+                    if (!array_key_exists($sourceId, $this->sources)) {
+                        throw new NewsFetchException('Source id not found in sources array. ' . $sourceId);
+                    }
+
+                    $authors = $this->parseAuthors($article['author']);
+                    $categories = $this->parseCategories($sourceId);
+
+                    $source = Source::firstOrCreate([
+                        'name' => $this->sources[$sourceId]['name'],
+                        'source_id' => $sourceId,
+                        'api_name' => 'newsapi',
+                    ]);
+
+                    $createdArticle = Article::create([
+                        'source_id' => $source->id,
+                        'title' => $article['title'],
+                        'description' => $article['description'],
+                        'article_url' => $article['url'],
+                        'image_url' => $article['urlToImage'],
+                        'published_at' => date('Y-m-d H:i:s', strtotime($article['publishedAt'])),
+                    ]);
+
+                    $authorIds = [];
+                    foreach ($authors as $authorName) {
+                        $author = Author::firstOrCreate(['name' => $authorName]);
+                        $authorIds[] = $author->id;
+                    }
+                    $createdArticle->authors()->sync($authorIds);
+
+                    $categoryIds = [];
+                    foreach ($categories as $categoryName) {
+                        $category = Category::firstOrCreate(['name' => $categoryName]);
+                        $categoryIds[] = $category->id;
+                    }
+                    $createdArticle->categories()->sync($categoryIds);
+                } catch (UniqueConstraintViolationException $t) {
+                    continue;
+                } catch (Throwable $t) {
+                    report($t);
+                    continue;
+                }
+            }
+        } catch (Throwable $e) {
+            report($e);
+        }
+    }
+
+    private function parseAuthors(?string $authors): array
+    {
+        try {
+            if (str_contains($authors, ' and ') || str_contains($authors, ', ')) {
+                $authors = str_replace([' and ', ', '], '|', $authors);
+            }
+            return array_filter(explode('|', $authors));
+        } catch (Throwable) {
+            return array();
+        }
+    }
+
+    private function parseCategories(string $sourceId): array
+    {
+        try {
+            $categories = array(
+                $this->sources[$sourceId]['category']
+            );
+
+            return array_filter($categories);
+        } catch (Throwable) {
+            return array();
+        }
     }
 }
