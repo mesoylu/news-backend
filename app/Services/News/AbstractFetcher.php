@@ -17,9 +17,10 @@ abstract class AbstractFetcher implements FetcherInterface
         $this->serviceUrl = $serviceUrl;
     }
 
-    public function execute(int $startTimestamp, int $endTimestamp ): void
+    public function execute(int $startTimestamp, int $endTimestamp): void
     {
-        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
+        echo 'executed' . PHP_EOL;
+//        $this->fetchArticlesByDate($startTimestamp, $endTimestamp);
     }
 
     abstract protected function fetchArticlesByDate(int $startTimestamp, int $endTimestamp): void;
