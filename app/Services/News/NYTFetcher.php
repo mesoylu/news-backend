@@ -56,44 +56,24 @@ class NYTFetcher extends AbstractFetcher
     {
         try {
             foreach ($articles as $article) {
-                try {
-                    $authors = $this->parseAuthors($article['byline']['original']);
-                    $categories = $this->parseCategories($article['keywords']);
+                $authors = $this->parseAuthors($article['byline']['original']);
+                $categories = $this->parseCategories($article['keywords']);
 
-                    $source = Source::firstOrCreate([
-                        'name' => 'The New York Times',
-                        'source_id' => 'nytimes',
-                        'api_name' => 'nyt',
-                    ]);
+                $sourceData = array(
+                    'name' => 'The New York Times',
+                    'source_id' => 'nytimes',
+                    'api_name' => 'nyt',
+                );
 
-                    $createdArticle = Article::create([
-                        'source_id' => $source->id,
-                        'title' => $article['headline']['main'] ?? $article['abstract'],
-                        'description' => $article['lead_paragraph'],
-                        'article_url' => $article['web_url'],
-                        'image_url' => $article['multimedia'][0]['url'] ?? '',
-                        'published_at' => date('Y-m-d H:i:s', strtotime($article['pub_date'])),
-                    ]);
+                $articleData = array(
+                    'title' => $article['headline']['main'] ?? $article['abstract'],
+                    'description' => $article['lead_paragraph'],
+                    'article_url' => $article['web_url'],
+                    'image_url' => $article['multimedia'][0]['url'] ?? '',
+                    'published_at' => date('Y-m-d H:i:s', strtotime($article['pub_date'])),
+                );
 
-                    $authorIds = [];
-                    foreach ($authors as $authorName) {
-                        $author = Author::firstOrCreate(['name' => $authorName]);
-                        $authorIds[] = $author->id;
-                    }
-                    $createdArticle->authors()->sync($authorIds);
-
-                    $categoryIds = [];
-                    foreach ($categories as $categoryName) {
-                        $category = Category::firstOrCreate(['name' => $categoryName]);
-                        $categoryIds[] = $category->id;
-                    }
-                    $createdArticle->categories()->sync($categoryIds);
-                } catch (UniqueConstraintViolationException $t) {
-                    continue;
-                } catch (Throwable $t) {
-                    report($t);
-                    continue;
-                }
+                $this->articleRepository->saveArticle($sourceData, $articleData, $authors, $categories);
             }
         } catch (Throwable $e) {
             report($e);

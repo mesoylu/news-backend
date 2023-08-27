@@ -120,36 +120,21 @@ class NewsapiFetcher extends AbstractFetcher
                     $authors = $this->parseAuthors($article['author']);
                     $categories = $this->parseCategories($sourceId);
 
-                    $source = Source::firstOrCreate([
+                    $sourceData = array(
                         'name' => $this->sources[$sourceId]['name'],
                         'source_id' => $sourceId,
                         'api_name' => 'newsapi',
-                    ]);
+                    );
 
-                    $createdArticle = Article::create([
-                        'source_id' => $source->id,
+                    $articleData = array(
                         'title' => $article['title'],
                         'description' => $article['description'],
                         'article_url' => $article['url'],
                         'image_url' => $article['urlToImage'],
                         'published_at' => date('Y-m-d H:i:s', strtotime($article['publishedAt'])),
-                    ]);
+                    );
 
-                    $authorIds = [];
-                    foreach ($authors as $authorName) {
-                        $author = Author::firstOrCreate(['name' => $authorName]);
-                        $authorIds[] = $author->id;
-                    }
-                    $createdArticle->authors()->sync($authorIds);
-
-                    $categoryIds = [];
-                    foreach ($categories as $categoryName) {
-                        $category = Category::firstOrCreate(['name' => $categoryName]);
-                        $categoryIds[] = $category->id;
-                    }
-                    $createdArticle->categories()->sync($categoryIds);
-                } catch (UniqueConstraintViolationException $t) {
-                    continue;
+                    $this->articleRepository->saveArticle($sourceData, $articleData, $authors, $categories);
                 } catch (Throwable $t) {
                     report($t);
                     continue;

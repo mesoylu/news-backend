@@ -3,6 +3,7 @@
 namespace App\Services\News;
 
 use App\Exceptions\NewsFetchException;
+use App\Repositories\ArticleRepository;
 use Illuminate\Support\Facades\Http;
 use Throwable;
 
@@ -10,11 +11,13 @@ abstract class AbstractFetcher implements FetcherInterface
 {
     protected string $apikey;
     protected string $serviceUrl;
+    protected ArticleRepository $articleRepository;
 
     public function __construct(string $apikey, string $serviceUrl)
     {
         $this->apikey = $apikey;
         $this->serviceUrl = $serviceUrl;
+        $this->articleRepository = new ArticleRepository();
     }
 
     public function execute(int $startTimestamp, int $endTimestamp): void

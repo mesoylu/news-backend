@@ -53,44 +53,24 @@ class GuardianFetcher extends AbstractFetcher
     {
         try {
             foreach ($articles as $article) {
-                try {
-                    $authors = $this->parseAuthors($article['tags']);
-                    $categories = $this->parseCategories($article['tags']);
+                $authors = $this->parseAuthors($article['tags']);
+                $categories = $this->parseCategories($article['tags']);
 
-                    $source = Source::firstOrCreate([
-                        'name' => 'The Guardian',
-                        'source_id' => 'guardian',
-                        'api_name' => 'guardian',
-                    ]);
+                $sourceData = array(
+                    'name' => 'The Guardian',
+                    'source_id' => 'guardian',
+                    'api_name' => 'guardian',
+                );
 
-                    $createdArticle = Article::create([
-                        'source_id' => $source->id,
-                        'title' => $article['webTitle'],
-                        'description' => $article['fields']['trailText'] ?? '',
-                        'article_url' => $article['webUrl'],
-                        'image_url' => $article['fields']['thumbnail'] ?? '',
-                        'published_at' => date('Y-m-d H:i:s', strtotime($article['webPublicationDate'])),
-                    ]);
+                $articleData = array(
+                    'title' => $article['webTitle'],
+                    'description' => $article['fields']['trailText'] ?? '',
+                    'article_url' => $article['webUrl'],
+                    'image_url' => $article['fields']['thumbnail'] ?? '',
+                    'published_at' => date('Y-m-d H:i:s', strtotime($article['webPublicationDate'])),
+                );
 
-                    $authorIds = [];
-                    foreach ($authors as $authorName) {
-                        $author = Author::firstOrCreate(['name' => $authorName]);
-                        $authorIds[] = $author->id;
-                    }
-                    $createdArticle->authors()->sync($authorIds);
-
-                    $categoryIds = [];
-                    foreach ($categories as $categoryName) {
-                        $category = Category::firstOrCreate(['name' => $categoryName]);
-                        $categoryIds[] = $category->id;
-                    }
-                    $createdArticle->categories()->sync($categoryIds);
-                } catch (UniqueConstraintViolationException $t) {
-                    continue;
-                } catch (Throwable $t) {
-                    report($t);
-                    continue;
-                }
+                $this->articleRepository->saveArticle($sourceData, $articleData, $authors, $categories);
             }
         } catch (Throwable $e) {
             report($e);
