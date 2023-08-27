@@ -36,7 +36,13 @@ abstract class AbstractFetcher implements FetcherInterface
                 throw new NewsFetchException('Response is not ok: ' . $response->body());
             }
 
-            return $response->json();
+            $result = $response->json();
+
+            if (empty($result)) {
+                throw new NewsFetchException('JSON body seems to be empty: ' . $response->body());
+            }
+
+            return $result;
         } catch (Throwable $e) {
             report($e);
             return null;
