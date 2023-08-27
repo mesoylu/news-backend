@@ -15,19 +15,22 @@ class Controller extends BaseController
 
     public function guardian()
     {
-        $api = new GuardianFetcher();
-        $api->execute();
+        return 'guardian';
+//        $api = new GuardianFetcher(1, 2);
+//        $api->execute();
     }
 
     public function nyt()
     {
-        $api = new NYTFetcher();
-        $api->execute();
+        return 'nyt';
+//        $api = new NYTFetcher(1, 2);
+//        $api->execute();
     }
 
     public function newsapi()
     {
-        $api = new NewsapiFetcher();
-        $api->execute();
+        return 'newsapi';
+//        $api = new NewsapiFetcher(1, 2);
+//        $api->execute();
     }
 }
